@@ -5,14 +5,14 @@
 <syslogd-configuration-group>
     <ueiList>
         <ueiMatch>
-            <process-match expression="^httpd$" />
-            <match type="regex" expression="^.*Warning: DocumentRoot \[(.*)\] does not exist.*$" />
+            <process-match expression="^httpd$"/>
+            <match type="regex" expression="^.*Warning: DocumentRoot \[(.*)\] does not exist.*$"/>
             <uei>uei.opennms.org/vendor/apache/syslog/httpd/documentRootDoesNotExist</uei>
-            <parameter-assignment matching-group="1" parameter-name="documentRoot" />
+            <parameter-assignment matching-group="1" parameter-name="documentRoot"/>
         </ueiMatch>
         <ueiMatch>
-            <process-match expression="^httpd$" />
-            <match type="regex" expression=".*" />
+            <process-match expression="^httpd$"/>
+            <match type="regex" expression=".*"/>
             <uei>uei.opennms.org/vendor/apache/syslog/httpd/unknownMessage</uei>
         </ueiMatch>
     </ueiList>
