@@ -1,63 +1,74 @@
-# _TEMPLATE_
+= Monitoring Apache2 with OpenNMS
 
-OpenNMS configuration for _TEMPLATE_ devices.
+== Required
 
-## Installation
+- Apache2 webserver is configured with mod_status and can be accessed through localhost.
+- Net-SNMP agent is installed and configured.
+- Python with library `python-urlgrabber` is installed
 
-.Download and install from GitHub
+== Setup Net-SNMP agent
+
+[source,bash]
+----
+git clone https://github.com/indigo423/opennms-apache2-monitoring.git
+cp -r extend /etc/snmp
+chmod +x /etc/snmp/extend/apache-stats.py
+----
+
+Create directory for caching
+
+[source,bash]
+----
+mkdir -p /var/local/snmp/cache/apache
+chown snmp:snmp /var/local/snmp/cache/apache
+----
+
+Extend Net-SNMP agent with 'apache-stats.py' in `snmpd.conf`
+
+[source,bash]
+----
+extend apache /etc/snmp/extend/apache-stats.py
+----
+
+Test output with
+
+[source,bash]
+----
+snmpwalk -On -v2c -c ${community} ${host} .1.3.6.1.4.1.8072.1.3.2.4.1.2.6.97.112.97.99.104.101
+----
+
+== Setup OpenNMS monitoring
+
+Drop in data collection config and RRD graph definitions:
+
+[source.bash]
+----
+cp datacollection/apache2.xml ${OPENNMS_HOME}/etc/datacollection
+cp snmp-graph.properties.d/apache2-graph.properties ${OPENNMS_HOME}/etc/snmp-graph.properties.d
+----
+
+Include data collection for Net-SNMP server
+
 [source, bash]
 ----
-cd $OPENNMS_HOME/etc/modules-available
-git clone https://github.com/opennms-config-modules/_template_.git
+vi ${OPENNMS_HOME}/etc/datacollection-config.xml
+
+#Add include here
+<include-collection dataCollectionGroup="apache2"/>
+
+# restart OpenNMS
+service opennms restart
 ----
 
-### Events
-.Install _Template_ events
-[source, bash]
+== Install Syslog parser
+
+Drop the Syslog parsing rule definition:
+
+[source.bash]
 ----
-cd $OPENNMS_HOME/etc/events
-ln -s ../modules-available/_template_/events/*.xml .
+cp syslog/apache.httpd.syslog.xml ${OPENNMS_HOME}/etc/syslog
 ----
 
-.Include in eventconf.xml
-[source, xml]
-----
-<event-file>events/_template_.events.xml</event-file>
-<event-file>events/_template_.events.xml</event-file>
-<event-file>events/_template_.events.xml</event-file>
-<event-file>events/_template_.events.xml</event-file>
-<event-file>events/_template_.events.xml</event-file>
-<event-file>events/_template_.events.xml</event-file>
-<event-file>events/_template_.events.xml</event-file>
-----
+== Credits
 
-### Datacollection
-
-.Install datacollection configuration
-[source, bash]
-----
-cd $OPENNMS_HOME/etc/datacollection
-ln -s ../modules-available/_template_/datacollection/*.xml .
-----
-
-.Include in datacollection-config.xml
-[source, xml]
-----
-<include-collection dataCollectionGroup="_template_"/>
-----
-
-### Graph report definitions
-
-.Install graph report definitions
-[source, bash]
-----
-cd $OPENNMS_HOME/etc/snmp-graph.properties.d
-ln -s ../modules-available/_template_/graphs/*.properties .
-----
-
-# License & Authors
-
-- Author:: Ronny Trommer (<ronny@opennms.org>)
-
-Licensed under the GNU Affero General Public License 3+.
-You may obtain a copy of the License at http://www.gnu.org/licenses/agpl-3.0.html.
+With thanks to Glen Pitt-Pladdy for the heavy lifting in `apache-stats.py`.
