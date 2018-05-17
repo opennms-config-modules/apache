@@ -8,10 +8,19 @@
 
 == Setup Net-SNMP agent
 
+.Create workspace directory and download the scripts and configuration files
 [source,bash]
 ----
-git clone https://github.com/indigo423/opennms-apache2-monitoring.git
-cp -r extend /etc/snmp
+mkdir ${HOME}/opennms-config-workspace
+cd ${HOME}/opennms-config-workspace
+git clone https://github.com/opennms-config-modules/apache.git
+----
+
+.Install Net-SNMP extend script
+[source,bash]
+----
+mkdir /etc/snmp/extend
+cp ${HOME}/opennms-config-workspace/apache/assets/apache-stats.py /etc/snmp/extend
 chmod +x /etc/snmp/extend/apache-stats.py
 ----
 
@@ -43,8 +52,8 @@ Drop in data collection config and RRD graph definitions:
 
 [source.bash]
 ----
-cp datacollection/apache2.xml ${OPENNMS_HOME}/etc/datacollection
-cp snmp-graph.properties.d/apache2-graph.properties ${OPENNMS_HOME}/etc/snmp-graph.properties.d
+cp ${HOME}/opennms-config-workspace/apache/datacollection/*.xml ${OPENNMS_HOME}/etc/datacollection
+cp ${HOME}/opennms-config-workspace/apache/snmp-graph.properties.d/*.properties ${OPENNMS_HOME}/etc/snmp-graph.properties.d
 ----
 
 Include data collection for Net-SNMP server
@@ -57,7 +66,7 @@ vi ${OPENNMS_HOME}/etc/datacollection-config.xml
 <include-collection dataCollectionGroup="apache2"/>
 
 # restart OpenNMS
-service opennms restart
+systemctl restart opennms
 ----
 
 == Install Syslog parser
@@ -66,7 +75,7 @@ Drop the Syslog parsing rule definition:
 
 [source.bash]
 ----
-cp syslog/apache.httpd.syslog.xml ${OPENNMS_HOME}/etc/syslog
+cp ${HOME}/opennms-config-workspace/apache/syslog/*.syslog.xml ${OPENNMS_HOME}/etc/syslog
 ----
 
 == Credits
